@@ -26,36 +26,41 @@ var round = function(number){
     return Math.max(Math.floor(number), 1);
 };
 
-var getMeasurements = function(text, textOptions){
+var addText = function(doc, text, start, end){
+    return doc.text(text.substring(start, end), { continued: true });
+};
+
+var getMeasurements = function(text){
     var doc = getDocument({
         bufferPages: true
     });
     var pageWidth = doc.page.width;
     var pageHeight = doc.page.height;
+    var opts = doc.options;
     var i = 1;
     var linesPerPage = 0;
 
     if(doc.options.margin){
-        pageWidth -= doc.options.margin*2;
-        pageHeight -= doc.options.margin*2;
-    }else if(doc.options.margins){
-        pageWidth -= ((doc.options.margins.left || 0) + (doc.options.margins.right || 0));
-        pageHeight -= ((doc.options.margins.top || 0) + (doc.options.margins.bottom || 0));
+        pageWidth -= opts.margin*2;
+        pageHeight -= opts.margin*2;
+    }else if(opts.margins){
+        pageWidth -= ((opts.margins.left || 0) + (opts.margins.right || 0));
+        pageHeight -= ((opts.margins.top || 0) + (opts.margins.bottom || 0));
     }
 
     // add the first character and measure how much space it takes up
-    var characterWidth = doc.text(text.substring(0, i), textOptions)._textOptions.textWidth;
+    var characterWidth = addText(doc, text, 0, i)._textOptions.textWidth;
 
     // calculate how many characters we're allowed per line.
     var charactersPerLine = round(pageWidth/characterWidth);
 
     // finish the first line. note that we're not adding i
     // because it has been added already
-    doc.text(text.substring(i, charactersPerLine), textOptions);
+    addText(doc, text, i, charactersPerLine);
     i += (charactersPerLine - i);
 
     for(i; i < text.length; i += charactersPerLine){
-        doc.text(text.substring(i, i + charactersPerLine), textOptions);
+        addText(doc, text, i, i + charactersPerLine);
 
         if(doc.bufferedPageRange().count > 1){
             linesPerPage = round(i/charactersPerLine);
@@ -78,10 +83,9 @@ var getMeasurements = function(text, textOptions){
 fs.readFile('./M74207281.txt', 'utf8', (err, data) => {
     var clean = data.replace(/\s/g, '').substring(0, 50000);
     var total = clean.length;
-    var textOptions = { continued: true };
     var outputName = './output.pdf';
     var doc = getDocument();
-    var measurements = getMeasurements(clean, textOptions);
+    var measurements = getMeasurements(clean);
 
     console.log([
         `Total characters: ${total}`,
@@ -94,7 +98,7 @@ fs.readFile('./M74207281.txt', 'utf8', (err, data) => {
     for(var i = 0; i < total; i += measurements.charactersPerLine){
         // note that this will go over the total, however substring doesn't really care about it.
         // it can be avoided by using Math.min(i + charactersPerLine, total)
-        doc.text(clean.substring(i, i + measurements.charactersPerLine), textOptions);
+        addText(doc, clean, i, i + measurements.charactersPerLine);
     }
 
     doc.pipe(fs.createWriteStream(outputName)).on('finish', () =>
