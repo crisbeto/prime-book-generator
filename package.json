@@ -1,0 +1,30 @@
+{
+  "name": "prime-book-generator",
+  "version": "0.0.1",
+  "description": "Generates ready-to-print PDFs from very large numbers",
+  "main": "prime.js",
+  "dependencies": {
+    "pdfkit": "^0.7.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crisbeto/prime-book-generator.git"
+  },
+  "keywords": [
+    "prime",
+    "number",
+    "book",
+    "generator",
+    "pdf"
+  ],
+  "author": "crisbeto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/crisbeto/prime-book-generator/issues"
+  },
+  "homepage": "https://github.com/crisbeto/prime-book-generator#readme"
+}
