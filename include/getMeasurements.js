@@ -41,6 +41,10 @@ module.exports = function(text){
         }
     }
 
+    if(!linesPerPage){
+        linesPerPage = utils.round(i/charactersPerLine);
+    }
+
     doc.end();
 
     return {
