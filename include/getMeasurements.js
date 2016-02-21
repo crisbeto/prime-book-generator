@@ -11,6 +11,7 @@ module.exports = function(text){
     var opts = doc.options;
     var i = 1;
     var linesPerPage = 0;
+    var textLength = text.length;
 
     if(doc.options.margin){
         pageWidth -= opts.margin*2;
@@ -31,7 +32,7 @@ module.exports = function(text){
     utils.addText(doc, text, i, charactersPerLine);
     i += (charactersPerLine - i);
 
-    for(i; i < text.length; i += charactersPerLine){
+    for(i; i < textLength; i += charactersPerLine){
         utils.addText(doc, text, i, i + charactersPerLine);
 
         if(doc.bufferedPageRange().count > 1){
@@ -46,6 +47,7 @@ module.exports = function(text){
         pageWidth: pageWidth,
         pageHeight: pageHeight,
         charactersPerLine: charactersPerLine,
-        linesPerPage: linesPerPage
+        linesPerPage: linesPerPage,
+        totalPages: Math.round(textLength/linesPerPage/charactersPerLine)
     };
 };

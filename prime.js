@@ -4,8 +4,6 @@ var fs = require('fs');
 var utils = require('./include/utils');
 var getMeasurements = require('./include/getMeasurements');
 
-// note that pdfkit seems to have a hard time with longer strings,
-// which is why we need to chunk it into pieces.
 fs.readFile('./M74207281.txt', 'utf8', (err, data) => {
     var clean = data.replace(/\s/g, '').substring(0, 50000);
     var total = clean.length;
@@ -18,18 +16,22 @@ fs.readFile('./M74207281.txt', 'utf8', (err, data) => {
         `Characters per line: ${measurements.charactersPerLine}`,
         `Lines per page: ${measurements.linesPerPage}`,
         `Page dimensions: ${measurements.pageWidth}x${measurements.pageHeight}`,
+        `Total pages: ${measurements.totalPages}`,
         `Started at ${new Date().toLocaleTimeString()}`
     ].join('\n'));
 
+    // Pdfkit has a hard time with longer strings, which is why we need
+    // to chunk it into pieces. One line at a time seems to be the best.
+    // Even one page at a time causes it to hang.
     for(var i = 0; i < total; i += measurements.charactersPerLine){
-        // note that this will go over the total, however substring doesn't really care about it.
+        // this will go over the total, however substring doesn't really care about it.
         // it can be avoided by using Math.min(i + charactersPerLine, total)
         utils.addText(doc, clean, i, i + measurements.charactersPerLine);
     }
 
     doc.pipe(fs.createWriteStream(outputName)).on('finish', () =>
-        console.log(`\nCreated ${outputName} at ${new Date().toLocaleTimeString()}.`
-    ));
+        console.log(`\nCreated ${outputName} at ${new Date().toLocaleTimeString()}`)
+    );
 
     doc.end();
 });
