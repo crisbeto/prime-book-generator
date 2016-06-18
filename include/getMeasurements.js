@@ -2,14 +2,11 @@
 
 var utils = require('./utils');
 
-module.exports = function(text){
-    var doc = utils.getDocument({
-        bufferPages: true
-    });
+module.exports = function(text, options){
+    var doc = utils.getDocument(options, true);
     var pageWidth = doc.page.width;
     var pageHeight = doc.page.height;
     var opts = doc.options;
-    var i = 1;
     var linesPerPage = 0;
     var textLength = text.length;
 
@@ -21,18 +18,13 @@ module.exports = function(text){
         pageHeight -= ((opts.margins.top || 0) + (opts.margins.bottom || 0));
     }
 
-    // add the first character and measure how much space it takes up
-    var characterWidth = utils.addText(doc, text, 0, i)._textOptions.textWidth;
+    // measure how much text a character takes up
+    var characterWidth = doc.widthOfString(text.substring(0, 1));
 
     // calculate how many characters we're allowed per line.
     var charactersPerLine = utils.round(pageWidth/characterWidth);
 
-    // finish the first line. note that we're not adding i
-    // because it has been added already
-    utils.addText(doc, text, i, charactersPerLine);
-    i += (charactersPerLine - i);
-
-    for(i; i < textLength; i += charactersPerLine){
+    for(var i = 0; i < textLength; i += charactersPerLine){
         utils.addText(doc, text, i, i + charactersPerLine);
 
         if(doc.bufferedPageRange().count > 1){

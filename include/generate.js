@@ -8,8 +8,11 @@ module.exports = function(options){
     fs.readFile(options.input, 'utf8', (err, data) => {
         var clean = data.replace(/\s/g, '').substring(0, 50000);
         var total = clean.length;
-        var doc = utils.getDocument();
-        var measurements = getMeasurements(clean);
+        var shouldBeDivisibleBy = 4;
+        var doc = utils.getDocument({
+            size: options.size || 'A4'
+        });
+        var measurements = getMeasurements(clean, options);
 
         console.log([
             `Total characters: ${total}`,
@@ -27,6 +30,16 @@ module.exports = function(options){
             // this will go over the total, however substring doesn't really care about it.
             // it can be avoided by using Math.min(i + charactersPerLine, total)
             utils.addText(doc, clean, i, i + measurements.charactersPerLine);
+        }
+
+        if(measurements.totalPages % shouldBeDivisibleBy !== 0){
+            var extra = (Math.ceil(measurements.totalPages / shouldBeDivisibleBy) * shouldBeDivisibleBy) - measurements.totalPages;
+
+            for(var j = 0; j < extra; j++){
+                doc.addPage();
+            }
+
+            console.log(`\nAdded ${extra} extra page(s).`);
         }
 
         doc.pipe(fs.createWriteStream(options.output)).on('finish', () =>
