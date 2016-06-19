@@ -2,17 +2,14 @@
 
 var fs = require('fs');
 var utils = require('./utils');
-var getMeasurements = require('./getMeasurements');
 
-module.exports = function(options){
+module.exports = function (options) {
     fs.readFile(options.input, 'utf8', (err, data) => {
-        var clean = data.replace(/\s/g, '').substring(0, 50000);
+        var clean = data.replace(/\s/g, '').substring(0, options.charLimit);
         var total = clean.length;
         var shouldBeDivisibleBy = 4;
-        var doc = utils.getDocument({
-            size: options.size || 'A4'
-        });
-        var measurements = getMeasurements(clean, options);
+        var doc = utils.getDocument(options);
+        var measurements = utils.measure(doc, clean);
 
         console.log([
             `Total characters: ${total}`,
@@ -33,7 +30,7 @@ module.exports = function(options){
         }
 
         if(measurements.totalPages % shouldBeDivisibleBy !== 0){
-            var extra = (Math.ceil(measurements.totalPages / shouldBeDivisibleBy) * shouldBeDivisibleBy) - measurements.totalPages;
+            var extra = measurements.totalPages % shouldBeDivisibleBy - 1;
 
             for(var j = 0; j < extra; j++){
                 doc.addPage();
@@ -42,9 +39,9 @@ module.exports = function(options){
             console.log(`\nAdded ${extra} extra page(s).`);
         }
 
-        doc.pipe(fs.createWriteStream(options.output)).on('finish', () =>
-            console.log(`\nCreated ${options.output} at ${new Date().toLocaleTimeString()}`)
-        );
+        doc.pipe(fs.createWriteStream(options.output)).on('finish', () => {
+            console.log(`\nCreated ${options.output} at ${new Date().toLocaleTimeString()}`);
+        });
 
         doc.end();
     });
